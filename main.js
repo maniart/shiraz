@@ -117,6 +117,11 @@ var rawVideo = $('#raw-video');
 var rawCanvas = $('#raw-canvas');
 
 /*
+  context for raw image
+*/
+var rawCtx = rawCanvas.getContext('2d');
+
+/*
   canvas containing the grid
 */
 var gridCanvas = $('#grid-canvas');
@@ -179,8 +184,8 @@ var PI = Math.PI;
 /*
   grid image resolution values
 */
-var GRID_RESOLUTION_X = 80;
-var GRID_RESOLUTION_Y = 80;
+var GRID_RESOLUTION_X = 8;
+var GRID_RESOLUTION_Y = 8;
 
 /*
   grid cell resolution
@@ -204,18 +209,6 @@ function toggle(event) {
 
 }
 
-/*
-  capture from camera
-  returns objectUrl
- */
-function capture() {
-  return getUserMedia(constraints, function(stream) {
-
-  }, function(error) {
-    console.warn('fuck')
-  })
-
-}
 
 /*
   draws stream into a output element (video or canvas)
@@ -261,7 +254,7 @@ function compare(input1, input2) {
     buffer: buffer,
     data1: data1,
     data2: data2,
-    sensitivity: .5,
+    sensitivity: 0.5,
     width: blendWidth,
     height: blendHeight
   });
@@ -325,17 +318,45 @@ function matrix() {
   draw a matrix as hit points
 */
 function drawGrid(matrix) {
-  // var color;
-  matrix.forEach(function(row, rowIdx) {
-    row.forEach(function(column, colIdx) {
-      gridCtx.beginPath();
-      gridCtx.fillStyle = 'rgb(' + column + ',' + column + ',' + column + ')';
-      gridCtx.arc(rowIdx * CELL_WIDTH, colIdx * CELL_HEIGHT, 1, 0, 2 * PI, false);
-      gridCtx.fill();
-      gridCtx.closePath();
-    });
-  });
+  var imageData;
+  for(var i = 0; i < matrix.length; i += 1) {
+    var row = matrix[i];
+    for(var j = 0; j < row.length; j += 1) {
+      var column = row[j];
+      imageData = rawCtx.getImageData(0, 0, CELL_WIDTH, CELL_HEIGHT);
+      if(column < 250) {
+        gridCtx.putImageData(imageData, i * CELL_WIDTH, j * CELL_HEIGHT);
+      }
+    }
+
+  }
+
 }
+
+/*
+  draw a matrix as hit points
+*/
+// function drawGrid(matrix) {
+//   var fill;
+//   for(var i = 0; i < matrix.length; i += 1) {
+//     var row = matrix[i];
+//     for(var j = 0; j < row.length; j += 1) {
+//       var column = row[j];
+//       gridCtx.beginPath();
+//       fill = column > 127 ? 255 : 0;
+//       // gridCtx.fillStyle = 'rgb(' + fill + ',' + fill + ',' + fill + ')';
+//       gridCtx.fillStyle = 'rgb(' + fill + ',' + fill + ',' + column + ')';
+//       //gridCtx.arc(i * CELL_WIDTH, j * CELL_HEIGHT, CELL_WIDTH, 0, 2 * PI, false);
+//       //gridCtx.fill();
+//
+//       gridCtx.fillRect(i * CELL_WIDTH, j * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
+//       gridCtx.closePath();
+//     }
+//
+//   }
+//
+// }
+
 
 /*
   bitwise Math.round
